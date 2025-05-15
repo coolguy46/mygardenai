@@ -26,7 +26,7 @@ This document outlines the step-by-step development process for a garden web app
 - Create login and signup pages.
 - Minimalist design:
   - **Login page**: basic layout with input for email/password and a sign-up link.
-  - **Signup page**: input fields for new user registration.
+  - **Signup page**: input fields for new user registration. make sure theres email verification as well.
 - After authentication, redirect to the dashboard.
 
 ---
