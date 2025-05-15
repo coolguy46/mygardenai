@@ -1,24 +1,28 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
+  const { data: { session } } = await supabase.auth.getSession();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Protected routes
+  const protectedRoutes = ['/dashboard', '/settings', '/chat'];
+  const isProtectedRoute = protectedRoutes.some(route => req.nextUrl.pathname.startsWith(route));
+  const isAuthRoute = ['/login', '/signup'].some(route => req.nextUrl.pathname.startsWith(route));
 
-  if (!session && req.nextUrl.pathname !== '/login' && req.nextUrl.pathname !== '/signup') {
-    return NextResponse.redirect(new URL('/login', req.url))
+  if (!session && isProtectedRoute) {
+    return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  return res
+  if (session && isAuthRoute) {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+
+  return res;
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|signup).*)',
-  ],
-}
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};

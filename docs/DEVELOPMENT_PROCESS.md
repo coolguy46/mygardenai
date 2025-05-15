@@ -36,9 +36,9 @@ This document outlines the step-by-step development process for a garden web app
 - Create main layout for logged-in users:
   - Navigation Header with links: **Dashboard**, **Settings**, **Chat**.
 - Pages:
-  - **Dashboard**: Main plant identification and garden interface.
+  - **Dashboard**: Main plant identification and garden interface. do not implement yet, only ui. make it extremely simplistic
   - **Settings**: Profile and account management (placeholder initially).
-  - **Chat**: Chat interface with Gemini API.
+  - **Chat**: Leave blank for now. (to be implented later)
 
 ---
 
