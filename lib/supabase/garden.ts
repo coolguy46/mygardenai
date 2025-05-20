@@ -1,8 +1,7 @@
 import { createClient } from './client';
-import type { Database } from '@/types/supabase';
-import type { GardenPlant } from '@/types/database';
+import type { GardenPlant, Garden, CareSchedule } from '@/types/database';
 
-export async function addToGarden(plantId: string, nickname?: string) {
+export async function addToGarden(plantId: string, nickname?: string): Promise<Garden> {
   const client = createClient();
   try {
     const { data: { session } } = await client.auth.getSession();
@@ -47,36 +46,66 @@ export async function addToGarden(plantId: string, nickname?: string) {
   }
 }
 
-export async function getGardenPlants() {
+export async function getGardenPlants(): Promise<GardenPlant[]> {
   const client = createClient();
   
-  const { data, error } = await client
-    .from('gardens')
-    .select(`
-      *,
-      plant:plants(*),
-      care_schedule:care_schedules(*)
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    const { data: { session } } = await client.auth.getSession();
+    if (!session) throw new Error('Not authenticated');
+    
+    const { data, error } = await client
+      .from('gardens')
+      .select(`
+        *,
+        plant:plants(*),
+        care_schedule:care_schedules(*)
+      `)
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data as GardenPlant[];
+    if (error) {
+      console.error('Error fetching garden plants:', error);
+      throw error;
+    }
+    
+    return data as GardenPlant[];
+  } catch (error) {
+    console.error('getGardenPlants error:', error);
+    throw new Error(`Failed to get garden plants: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
-export async function removeFromGarden(gardenId: string) {
+export async function removeFromGarden(gardenId: string): Promise<boolean> {
   const client = createClient();
 
-  // Delete care schedule first due to foreign key constraint
-  await client
-    .from('care_schedules')
-    .delete()
-    .eq('garden_id', gardenId);
+  try {
+    // Delete care schedule first due to foreign key constraint
+    const { error: careError } = await client
+      .from('care_schedules')
+      .delete()
+      .eq('garden_id', gardenId)
+      .throwOnError();
 
-  // Then delete the garden entry
-  const { error } = await client
-    .from('gardens')
-    .delete()
-    .eq('id', gardenId);
+    if (careError) {
+      console.error('Failed to delete care schedule:', careError);
+      throw careError;
+    }
 
-  if (error) throw error;
+    // Then delete the garden entry
+    const { error: gardenError } = await client
+      .from('gardens')
+      .delete()
+      .eq('id', gardenId)
+      .throwOnError();
+
+    if (gardenError) {
+      console.error('Failed to delete garden entry:', gardenError);
+      throw gardenError;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Failed to remove from garden:', error);
+    throw error;
+  }
 }

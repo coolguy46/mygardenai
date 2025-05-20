@@ -1,14 +1,15 @@
 "use client"
 
+import React from 'react';
 import { useState, useEffect } from 'react';
 import ImageUpload from '@/components/upload/ImageUpload';
 import PlantCard from '@/components/plants/PlantCard';
 import { getGardenPlants, addToGarden, removeFromGarden } from '@/lib/supabase/garden';
-import type { GardenPlant } from '@/types/database';
+import type { GardenPlant, Plant } from '@/types/database';
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
-  const [identifiedPlant, setIdentifiedPlant] = useState<any>(null);
+  const [identifiedPlant, setIdentifiedPlant] = useState<Plant | null>(null);
   const [gardenPlants, setGardenPlants] = useState<GardenPlant[]>([]);
 
   useEffect(() => {
@@ -60,10 +61,16 @@ export default function Dashboard() {
 
   const handleRemoveFromGarden = async (gardenId: string) => {
     try {
-      await removeFromGarden(gardenId);
-      await loadGardenPlants();
+      console.log('Attempting to remove garden entry:', gardenId);
+      if (confirm('Are you sure you want to remove this plant from your garden?')) {
+        await removeFromGarden(gardenId);
+        // Update local state to remove the plant
+        setGardenPlants(prev => prev.filter(plant => plant.id !== gardenId));
+        console.log('Plant removed successfully');
+      }
     } catch (error) {
       console.error('Failed to remove from garden:', error);
+      alert('Failed to remove plant from garden. Please try again.');
     }
   };
 
@@ -77,22 +84,26 @@ export default function Dashboard() {
         {/* Left side - Garden View */}
         <div className="lg:flex-1 w-full bg-white p-6 rounded-lg shadow-sm">
           <h2 className="text-xl font-semibold mb-4">My Garden</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {gardenPlants.map((plant) => (
-              <PlantCard
-                key={plant.id}
-                id={plant.id}
-                name={plant.plant.name}
-                description={plant.plant.description}
-                imageUrl={plant.plant.image_url}
-                careInstructions={plant.plant.care_instructions}
-                nickname={plant.nickname}
-                nextWater={plant.care_schedule?.next_water_date}
-                isGardenPlant={true}
-                onRemoveFromGarden={handleRemoveFromGarden}
-              />
-            ))}
-          </div>
+          {gardenPlants.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">Your garden is empty. Identify a plant to add it to your garden.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {gardenPlants.map((plant) => (
+                <PlantCard
+                  key={plant.id}
+                  id={plant.id} 
+                  name={plant.plant.name}
+                  description={plant.plant.description}
+                  imageUrl={plant.plant.image_url}
+                  careInstructions={plant.plant.care_instructions}
+                  nickname={plant.nickname}
+                  nextWater={plant.care_schedule?.next_water_date}
+                  isGardenPlant={true}
+                  onRemoveFromGarden={handleRemoveFromGarden}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right side - Upload & Identification */}

@@ -1,12 +1,12 @@
 import React from 'react';
 
 interface PlantCardProps {
-  id?: string;
+  id?: string;  // This is the garden_id when isGardenPlant=true, or plant_id otherwise
   name: string;
-  description: string;
-  careInstructions: string;
-  imageUrl?: string;
-  nickname?: string;
+  description?: string | null;
+  careInstructions?: string | null;
+  imageUrl?: string | null;
+  nickname?: string | null;
   nextWater?: string;
   isGardenPlant?: boolean;
   onAddToGarden?: () => void;
@@ -84,13 +84,24 @@ export default function PlantCard({
     }
   };
 
-  const handleRemove = () => {
-    console.log('Remove button clicked for gardenId:', id);
-    if (id && onRemoveFromGarden) {
-      onRemoveFromGarden(id);
-    } else {
-      console.warn('Garden ID is missing or onRemoveFromGarden is not defined');
+  const handleRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent event bubbling
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Make sure we have both an id and a callback function
+    if (!id) {
+      console.error('Cannot remove from garden: Missing garden ID');
+      return;
     }
+    
+    if (!onRemoveFromGarden) {
+      console.error('Cannot remove from garden: Missing callback function');
+      return;
+    }
+    
+    console.log('Removing plant from garden with ID:', id);
+    onRemoveFromGarden(id);
   };
 
   return (
@@ -127,7 +138,9 @@ export default function PlantCard({
           {isGardenPlant ? (
             <button
               onClick={handleRemove}
-              className="w-full px-4 py-2 text-red-500 border border-red-300 rounded-md hover:bg-red-50"
+              className="w-full px-4 py-2 text-red-500 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer active:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-300"
+              type="button"
+              aria-label="Remove from Garden"
             >
               Remove from Garden
             </button>

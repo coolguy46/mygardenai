@@ -61,3 +61,27 @@ create policy "Users can view their care schedules"
       and gardens.user_id = auth.uid()
     )
   );
+
+-- Update foreign key constraints to cascade deletes
+ALTER TABLE care_schedules 
+DROP CONSTRAINT IF EXISTS care_schedules_garden_id_fkey,
+ADD CONSTRAINT care_schedules_garden_id_fkey 
+  FOREIGN KEY (garden_id) 
+  REFERENCES gardens(id) 
+  ON DELETE CASCADE;
+
+-- Add policy for deleting care schedules
+create policy "Users can delete their care schedules"
+  on care_schedules for delete
+  using (
+    exists (
+      select 1 from gardens
+      where gardens.id = garden_id
+      and gardens.user_id = auth.uid()
+    )
+  );
+
+-- Add policy for deleting garden entries
+create policy "Users can delete their garden entries"
+  on gardens for delete
+  using (auth.uid() = user_id);
