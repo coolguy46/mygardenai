@@ -11,7 +11,7 @@ export default function Login() {
   const router = useRouter()
   const supabase = createClientComponentClient()
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     try {
       const { error: signInError, data } = await supabase.auth.signInWithPassword({
@@ -27,8 +27,8 @@ export default function Login() {
         router.refresh()
         router.push('/dashboard')
       }
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
@@ -62,8 +62,9 @@ export default function Login() {
           </button>
         </form>
         <div className="text-center mt-4">
+          <p>Don&apos;t have an account?</p>
           <a href="/signup" className="text-green-600 hover:text-green-700">
-            Don't have an account? Sign up
+            Sign up
           </a>
         </div>
       </div>

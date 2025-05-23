@@ -1,5 +1,5 @@
 import { createClient } from './client';
-import type { GardenPlant, Garden, CareSchedule } from '@/types/database';
+import type { GardenPlant, Garden} from '@/types/database';
 
 export async function addToGarden(plantId: string, nickname?: string): Promise<Garden> {
   const client = createClient();

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import Image from 'next/image';
 
 interface ImageUploadProps {
   onUpload: (file: File) => void;
@@ -35,7 +36,14 @@ export default function ImageUpload({ onUpload, isLoading }: ImageUploadProps) {
     >
       <input {...getInputProps()} />
       {preview ? (
-        <img src={preview} alt="Upload preview" className="mx-auto max-h-48 rounded-lg" />
+        <div className="relative h-48 w-full">
+          <Image
+            src={preview}
+            alt="Upload preview"
+            fill
+            className="object-cover rounded-lg"
+          />
+        </div>
       ) : (
         <>
           <p className="text-gray-500 mb-2">Drop an image here or click to select</p>

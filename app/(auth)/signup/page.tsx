@@ -2,15 +2,14 @@
 
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+
 
 export default function SignUp() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [message, setMessage] = useState<string | null>(null)
-  const router = useRouter()
+  const [message] = useState<string | null>(null)
   const supabase = createClientComponentClient()
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -21,21 +20,17 @@ export default function SignUp() {
     }
 
     try {
-      const { error, data } = await supabase.auth.signUp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
       })
-      
-      if (error) throw error
-      
-      setMessage('Check your email for the verification link')
-      setError(null)
-    } catch (error: any) {
-      setError(error.message)
-      setMessage(null)
+
+      if (signUpError) throw signUpError
+
+      // Show success message instead of redirecting
+      setError('Check your email to confirm your account')
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 

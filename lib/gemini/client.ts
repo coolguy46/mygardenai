@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { PlantIdentification } from '@/types/api';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY!);
 
 export async function identifyPlant(imageBase64: string): Promise<PlantIdentification> {
   try {
@@ -21,11 +21,11 @@ export async function identifyPlant(imageBase64: string): Promise<PlantIdentific
     ]);
 
     const text = result.response.text();
-    console.log('Raw response:', text); // Debug log
-
     if (!text) {
-      throw new Error('Empty response from Gemini API');
+      throw new Error('No response from Gemini API');
     }
+
+    const processedText = text.replace(/\r\n/g, '\n');
 
     // Extract only the JSON part from the response
     const extractJsonFromText = (inputText: string): PlantIdentification => {
@@ -33,16 +33,16 @@ export async function identifyPlant(imageBase64: string): Promise<PlantIdentific
       try {
         return JSON.parse(inputText) as PlantIdentification;
       } catch (e) {
-        // Continue with extraction
+        console.log('Failed to parse JSON:', e);
       }
 
       // Remove markdown code blocks
-      let processedText = inputText.replace(/```json\s*|\s*```/g, '');
+      const processedText = inputText.replace(/```json\s*|\s*```/g, '');
       
       try {
         return JSON.parse(processedText) as PlantIdentification;
       } catch (e) {
-        // Continue with more processing
+        console.log('Failed to parse JSON:', e);
       }
       
       // Find JSON-like content with regex
@@ -72,16 +72,16 @@ export async function identifyPlant(imageBase64: string): Promise<PlantIdentific
             return parsed;
           }
         } catch (e) {
-          // Try next match
+          console.log('Failed to parse JSON:', e);
         }
       }
 
       throw new Error('Could not extract valid PlantIdentification JSON from response');
     };
 
-    return extractJsonFromText(text);
-  } catch (e) {
-    console.error('Plant identification error:', e);
-    throw new Error(e instanceof Error ? e.message : 'Failed to identify plant');
+    return extractJsonFromText(processedText);
+  } catch (error: unknown) {
+    console.error('Plant identification error:', error);
+    throw new Error(error instanceof Error ? error.message : 'Failed to identify plant');
   }
 }

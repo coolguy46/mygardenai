@@ -1,12 +1,8 @@
-import { createClientComponentClient, createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/supabase';
 
 export const createClient = () => {
   return createClientComponentClient<Database>();
-};
-
-export const createServerClient = (cookies: () => any) => {
-  return createServerComponentClient<Database>({ cookies });
 };
 
 export async function uploadPlantImage(file: File): Promise<string> {
