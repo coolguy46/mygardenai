@@ -33,52 +33,57 @@ export default function PlantCard({
       return <p className="text-sm text-gray-500 italic">No care instructions available</p>;
     }
     
-    // Format into key-value pairs based on the expected format from the API
-    // First split by newlines
-    const lines = careInstructions.split(/\n/).map(line => line.trim()).filter(Boolean);
-    
-    if (lines.length > 1) {
-      // If we have multiple lines, use those
-      return (
-        <ul className="text-sm text-gray-600 space-y-2 list-none pl-0">
-          {lines.map((line, index) => (
-            <li key={index} className="pb-1 flex">
-              {line.includes(':') ? (
-                <>
-                  <span className="font-medium min-w-16">{line.split(':')[0]}:</span>
-                  <span className="ml-1">{line.split(':').slice(1).join(':')}</span>
-                </>
-              ) : line}
-            </li>
-          ))}
-        </ul>
-      );
-    } else {
-      // If it's all one line, try to split by category patterns
-      const categories = careInstructions.split(/\.\s*(?=[A-Z][a-z]+:)|\.\s*$/);
+    try {
+      // Format into key-value pairs based on the expected format from the API
+      // First split by newlines
+      const lines = careInstructions.split(/\n/).map(line => line.trim()).filter(Boolean);
       
-      return (
-        <ul className="text-sm text-gray-600 space-y-2 list-none pl-0">
-          {categories
-            .filter(item => item && item.trim().length > 0)
-            .map((item, index) => {
-              const trimmedItem = item.trim();
-              // Check if this is a key-value pair (contains a colon)
-              if (trimmedItem.includes(':')) {
-                const [key, ...valueParts] = trimmedItem.split(':');
-                const value = valueParts.join(':').trim();
-                return (
-                  <li key={index} className="pb-1 flex">
-                    <span className="font-medium min-w-16">{key}:</span> 
-                    <span className="ml-1">{value}</span>
-                  </li>
-                );
-              } else {
-                return <li key={index} className="pb-1">{trimmedItem}</li>;
-              }
-            })}
-        </ul>
-      );
+      if (lines.length > 1) {
+        // If we have multiple lines, use those
+        return (
+          <ul className="text-sm text-gray-600 space-y-2 list-none pl-0">
+            {lines.map((line, index) => (
+              <li key={index} className="pb-1 flex">
+                {line.includes(':') ? (
+                  <>
+                    <span className="font-medium min-w-16">{line.split(':')[0]}:</span>
+                    <span className="ml-1">{line.split(':').slice(1).join(':')}</span>
+                  </>
+                ) : line}
+              </li>
+            ))}
+          </ul>
+        );
+      } else {
+        // If it's all one line, try to split by category patterns
+        const categories = careInstructions.split(/\.\s*(?=[A-Z][a-z]+:)|\.\s*$/);
+        
+        return (
+          <ul className="text-sm text-gray-600 space-y-2 list-none pl-0">
+            {categories
+              .filter(item => item && item.trim().length > 0)
+              .map((item, index) => {
+                const trimmedItem = item.trim();
+                // Check if this is a key-value pair (contains a colon)
+                if (trimmedItem.includes(':')) {
+                  const [key, ...valueParts] = trimmedItem.split(':');
+                  const value = valueParts.join(':').trim();
+                  return (
+                    <li key={index} className="pb-1 flex">
+                      <span className="font-medium min-w-16">{key}:</span> 
+                      <span className="ml-1">{value}</span>
+                    </li>
+                  );
+                } else {
+                  return <li key={index} className="pb-1">{trimmedItem}</li>;
+                }
+              })}
+          </ul>
+        );
+      }
+    } catch (error) {
+      console.error("Error rendering care instructions:", error);
+      return <p className="text-sm text-gray-500">Care instructions: {careInstructions}</p>;
     }
   };
 
@@ -163,7 +168,7 @@ export default function PlantCard({
           </div>
         )}
 
-        {/* Care instructions section */}
+        {/* Care instructions section - Always show this section regardless of isGardenPlant */}
         <div className="bg-gray-50 p-3 rounded-lg mb-4">
           <h4 className="text-sm font-medium text-gray-800 mb-2 flex items-center">
             <svg className="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

@@ -38,7 +38,12 @@ export default function Dashboard() {
 
       if (!response.ok) throw new Error('Failed to identify plant');
       const data = await response.json();
-      setIdentifiedPlant(data.data);
+      
+      // Make sure careInstructions is accessible in the identified plant
+      setIdentifiedPlant({
+        ...data.data,
+        careInstructions: data.data.care_instructions || null
+      });
     } catch (error) {
       console.error('Error:', error);
       // TODO: Add error toast
